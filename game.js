@@ -1,21 +1,41 @@
 /* 互動情境（試行版）：對話問診 → 碰觸身體檢查 → 腦中分析泡泡 → 評分講解 */
 const GAMES=['dizziness','headache'];
-const REGION={head:['頭',100,20],eyes:['眼',100,52],face:['臉',100,84],ears:['耳',58,66],neck:['頸',100,114],chest:['胸',100,165],arm:['臂',158,180],hand:['手',160,246],legs:['腿',112,310]};
 const shuf=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
 function say(el,text){clearInterval(say.t);el.textContent='';let i=0;say.t=setInterval(()=>{el.textContent=text.slice(0,++i);if(i>=text.length)clearInterval(say.t)},22)}
-function bodySVG(){return `<svg viewBox="0 0 200 380" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><g class="gm-fig">
- <ellipse class="fg-line" cx="100" cy="58" rx="40" ry="48"/><circle class="fg-line" cx="58" cy="66" r="8"/><circle class="fg-line" cx="142" cy="66" r="8"/>
- <rect class="fg-line" x="90" y="100" width="20" height="22" rx="6"/><rect class="fg-line" x="58" y="120" width="84" height="120" rx="26"/>
- <rect class="fg-line" x="30" y="124" width="22" height="112" rx="11"/><rect class="fg-line" x="148" y="124" width="22" height="112" rx="11"/>
- <circle class="fg-line" cx="41" cy="248" r="11"/><circle class="fg-line" cx="159" cy="248" r="11"/>
- <rect class="fg-line" x="70" y="238" width="27" height="130" rx="12"/><rect class="fg-line" x="103" y="238" width="27" height="130" rx="12"/></g></svg>`}
-const pos=(x,y)=>`left:${x/2}%;top:${y/3.8}%`;
+/* 身體檢查圖（黑白圖示風格，viewBox 420×520）：r=檢查區域、l=按鈕文字、side=按鈕在身體左/右、y=按鈕高度、t=身體上的目標點 */
+const CALL=[{r:'head',i:'head',l:'頭部',s:'L',y:38,t:[192,36]},{r:'eyes',i:'eye',l:'眼睛',s:'L',y:88,t:[190,72]},{r:'ears',i:'ear',l:'耳朵',s:'L',y:138,t:[152,90]},{r:'neck',i:'neck',l:'頸部',s:'L',y:188,t:[200,146]},{r:'chest',i:'heart',l:'胸部',s:'L',y:240,t:[186,216]},{r:'arm',i:'arm',l:'手臂',s:'L',y:294,t:[124,262]},{r:'hand',i:'hand',l:'手部',s:'L',y:376,t:[111,368]},
+ {r:'face',i:'face',l:'臉部',s:'R',y:114,t:[238,108]},{r:'legs',i:'leg',l:'膝／腿',s:'R',y:404,t:[244,404]},{r:'legs',i:'foot',l:'腳踝／足',s:'R',y:488,t:[248,488]}];
+const cx=x=>x<210?106:302;
+function bodySVG(cl=[]){return `<svg viewBox="0 0 420 520" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+ <circle cx="154" cy="88" r="11" fill="#fff" stroke="#111" stroke-width="6"/><circle cx="266" cy="88" r="11" fill="#fff" stroke="#111" stroke-width="6"/>
+ <path d="M150,84 q-4,4 0,10 M270,84 q4,4 0,10" fill="none" stroke="#111" stroke-width="3"/>
+ <g stroke="#111" stroke-linecap="round" fill="none"><line x1="152" y1="180" x2="124" y2="262" stroke-width="30"/><line x1="124" y1="262" x2="112" y2="350" stroke-width="26"/><line x1="268" y1="180" x2="296" y2="262" stroke-width="30"/><line x1="296" y1="262" x2="308" y2="350" stroke-width="26"/>
+ <line x1="186" y1="304" x2="178" y2="404" stroke-width="36"/><line x1="178" y1="404" x2="173" y2="486" stroke-width="30"/><line x1="234" y1="304" x2="242" y2="404" stroke-width="36"/><line x1="242" y1="404" x2="247" y2="486" stroke-width="30"/></g>
+ <rect x="196" y="128" width="28" height="30" fill="#111"/><rect x="152" y="152" width="116" height="156" rx="32" fill="#111"/><circle cx="152" cy="178" r="18" fill="#111"/><circle cx="268" cy="178" r="18" fill="#111"/>
+ <circle cx="110" cy="370" r="16" fill="#111"/><circle cx="310" cy="370" r="16" fill="#111"/><rect x="146" y="486" width="56" height="20" rx="10" fill="#111"/><rect x="218" y="486" width="56" height="20" rx="10" fill="#111"/>
+ <g fill="#fff"><circle cx="124" cy="262" r="8"/><circle cx="296" cy="262" r="8"/><circle cx="112" cy="350" r="6"/><circle cx="308" cy="350" r="6"/><circle cx="178" cy="404" r="10"/><circle cx="242" cy="404" r="10"/><circle cx="173" cy="486" r="7"/><circle cx="247" cy="486" r="7"/></g>
+ <circle cx="210" cy="78" r="57" fill="#fff" stroke="#111" stroke-width="7"/>
+ <ellipse cx="190" cy="74" rx="7" ry="9" fill="#111"/><ellipse cx="230" cy="74" rx="7" ry="9" fill="#111"/><path d="M178,58 q12,-9 24,0 M218,58 q12,-9 24,0" fill="none" stroke="#111" stroke-width="4" stroke-linecap="round"/>
+ <path d="M210,80 l-7,18 h14" fill="none" stroke="#111" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M191,114 q19,15 38,0" fill="none" stroke="#111" stroke-width="5" stroke-linecap="round"/>
+ ${cl.map(c=>`<line x1="${cx(c.t[0]<210&&c.s==='L'?0:420)}" y1="${c.y}" x2="${c.t[0]}" y2="${c.t[1]}" stroke="#fff" stroke-width="7" stroke-linecap="round"/><line x1="${c.s==='L'?106:302}" y1="${c.y}" x2="${c.t[0]}" y2="${c.t[1]}" stroke="#111" stroke-width="2.5"/>`).join('')}
+ ${cl.map(c=>`<circle class="tdot" cx="${c.t[0]}" cy="${c.t[1]}" r="12" fill="none" stroke="#fff" stroke-width="8"/><circle class="tdot" cx="${c.t[0]}" cy="${c.t[1]}" r="12" fill="none" stroke="#d9534f" stroke-width="4.5"/>`).join('')}</svg>`}
+function docSVG(){return `<svg viewBox="0 0 120 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><g stroke="#111" stroke-linecap="round"><line x1="30" y1="76" x2="14" y2="132" stroke-width="13"/><line x1="90" y1="76" x2="106" y2="132" stroke-width="13"/></g>
+ <rect x="36" y="150" width="18" height="44" rx="7" fill="#111"/><rect x="66" y="150" width="18" height="44" rx="7" fill="#111"/>
+ <path d="M30,68 Q60,58 90,68 L98,156 L22,156 Z" fill="#fff" stroke="#111" stroke-width="5" stroke-linejoin="round"/><path d="M48,64 L60,92 L72,64" fill="none" stroke="#111" stroke-width="4"/>
+ <path d="M52,72 Q44,104 60,108 Q76,104 68,72" fill="none" stroke="#111" stroke-width="3"/><circle cx="60" cy="110" r="4" fill="#111"/><circle cx="60" cy="36" r="24" fill="#111"/>
+ <rect x="92" y="112" width="22" height="30" rx="3" fill="#fff" stroke="#111" stroke-width="3"/><path d="M97,122 h12 M97,129 h12 M97,136 h8" stroke="#111" stroke-width="2"/></svg>`}
+function patSVG(f){return `<svg viewBox="0 0 220 170" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect x="196" y="36" width="12" height="100" rx="4" fill="#111"/><rect x="16" y="104" width="190" height="22" rx="7" fill="#111"/>
+ <rect x="30" y="126" width="160" height="7" fill="#111"/><g fill="#111"><circle cx="46" cy="150" r="12"/><circle cx="176" cy="150" r="12"/></g><g fill="#fff"><circle cx="46" cy="150" r="5"/><circle cx="176" cy="150" r="5"/></g>
+ <rect x="66" y="86" width="108" height="20" rx="10" fill="#111"/><rect x="150" y="50" width="36" height="58" rx="14" fill="#111"/><line x1="160" y1="74" x2="124" y2="92" stroke="#111" stroke-width="12" stroke-linecap="round"/>
+ <circle cx="168" cy="32" r="21" fill="#111"/>${f?'<circle cx="188" cy="26" r="8" fill="#111"/><path d="M148,28 q4,-18 20,-18 q16,0 20,18" fill="none" stroke="#111" stroke-width="5"/>':''}
+ <path d="M66,86 h64 l-6,20 h-58 z" fill="#fff" stroke="#111" stroke-width="4" stroke-linejoin="round"/></svg>`}
+const pos=(x,y)=>`left:${(x/4.2).toFixed(2)}%;top:${(y/5.2).toFixed(2)}%`;
 
 async function gameMenu(){
   document.title='互動情境（試行版）';
   app.innerHTML=`<button class="back" id="back">← 回首頁</button><header><div class="eyebrow">互動情境（試行版）</div><h1>OSCE 情境模擬</h1>
   <p class="sub">與病人對話問診、碰觸身體部位做檢查，最後在腦中選擇思考方向並提出鑑別診斷。每次病例隨機產生。</p></header>
-  <div class="tlist">${GAMES.map(id=>{const t=INDEX.find(x=>x.id===id),r=store.get('game:'+id,null);return `<button type="button" class="tcard" data-g="${id}"><div class="tt">${t.title}</div><div class="td">問診 → 身體檢查 → 分析</div>${r?`<div class="tn">已練習 ${r.n} 次・最近 ${r.last} 分・最佳 ${r.best} 分</div>`:''}</button>`}).join('')}</div>`;
+  <div class="tlist">${GAMES.map(id=>{const t=INDEX.find(x=>x.id===id),r=store.get('game:'+id,null);return `<button type="button" class="tcard" data-g="${id}"><div class="tt">${ico(TICON[id],28)}${t.title}</div><div class="td">問診 → 身體檢查 → 分析</div>${r?`<div class="tn">已練習 ${r.n} 次・最近 ${r.last} 分・最佳 ${r.best} 分</div>`:''}</button>`}).join('')}</div>`;
   document.getElementById('back').onclick=()=>{location.hash='#/'};
   app.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>{location.hash='#/game/'+b.dataset.g});
 }
@@ -28,7 +48,7 @@ function game(T,meta,G){
   const auto=['age','sex'].filter(d=>S.some(s=>s.dim===d)),askDims=G.q.map(q=>q.dim);
   const spec=Object.fromEntries(askDims.map(d=>[d,1-T.dx.filter(x=>(x.match[d]||[]).includes(val[d])).length/N]));
   const fnd=it=>{const k=Object.keys(it.over).find(k=>truth.name.includes(k));return k?it.over[k]:null};
-  const pool=shuf([...G.q.map(q=>({k:'q',dim:q.dim,ask:q.ask})),...G.gen.map((g,i)=>({k:'g',i,ask:g.ask}))]);
+  const pool=shuf([...G.q.map(q=>({k:'q',dim:q.dim,ask:q.ask,ic:q.ic})),...G.gen.map((g,i)=>({k:'g',i,ask:g.ask,ic:g.ic}))]);
   const hist=[],done=[],R={main:null,more:new Set(),dx:new Set(),plan:new Set()};
   const old=/>65|>50/.test(val.age||''),fem=val.sex==='女',av=old?(fem?'👵':'👴'):(fem?'👩':'👨');
   const who=[val.sex?(fem?'女性':'男性'):'',val.age||''].filter(Boolean).join('，');
@@ -38,14 +58,14 @@ function game(T,meta,G){
 
   function p1(){
     $('ph').textContent='① 問診';
-    $('stage').innerHTML=`<div class="gm-stage"><div class="gm-who"><div class="bub doc" id="dbub">請說，哪裡不舒服？</div><div class="gm-av">🧑‍⚕️</div><div class="gm-name">你（檢查者）</div></div>
-     <div class="gm-who"><div class="bub" id="pbub"></div><div class="gm-av">${av}</div><div class="gm-name">病人</div></div></div>
+    $('stage').innerHTML=`<div class="gm-stage"><div class="gm-who"><div class="bub doc" id="dbub">請說，哪裡不舒服？</div><div class="gm-av">${docSVG()}</div><div class="gm-name">你（檢查者）</div></div>
+     <div class="gm-who"><div class="bub" id="pbub"></div><div class="gm-av">${patSVG(fem)}</div><div class="gm-name">病人</div></div></div>
      <div class="choices" id="ch"></div><div class="logbox" id="hlog"></div><div class="endnav"><button type="button" class="cbtn rand" id="n1">結束問診，進入身體檢查 →</button></div>`;
     say($('pbub'),G.cc);$('n1').onclick=p2;choices();
   }
   function choices(){
     const left=G.qcap-hist.length;$('qt').textContent=`還可提問 ${Math.max(left,0)} 題`;
-    $('ch').innerHTML=pool.map((c,i)=>`<button type="button" class="choice" data-i="${i}" ${hist.includes(c)||left<=0?'disabled':''}>🗨 ${c.ask}</button>`).join('');
+    $('ch').innerHTML=pool.map((c,i)=>`<button type="button" class="choice" data-i="${i}" ${hist.includes(c)||left<=0?'disabled':''}>${ico(c.ic||'list',26)}<span>${c.ask}</span></button>`).join('');
     $('ch').querySelectorAll('.choice').forEach(b=>b.onclick=()=>{
       const c=pool[+b.dataset.i];if(hist.length>=G.qcap||hist.includes(c))return;hist.push(c);
       const rep=c.k==='q'?(G.q.find(q=>q.dim===c.dim).lay[val[c.dim]]||val[c.dim]):G.gen[c.i].reply;
@@ -54,13 +74,13 @@ function game(T,meta,G){
   }
   function p2(){
     $('ph').textContent='② 身體檢查';
-    const regs=[...new Set(G.exam.map(e=>e.region))];
-    $('stage').innerHTML=`<p class="sub" style="text-align:center">點選發光的身體部位，再選擇要做的檢查。</p><div class="body" id="body">${bodySVG()}${regs.map(r=>`<button type="button" class="spot" data-r="${r}" style="${pos(REGION[r][1],REGION[r][2])}">${REGION[r][0]}</button>`).join('')}</div>
+    const regs=[...new Set(G.exam.map(e=>e.region))],cl=CALL.filter(c=>regs.includes(c.r));
+    $('stage').innerHTML=`<p class="sub" style="text-align:center">點選身體旁邊的部位名稱（紅點是檢查位置），再選擇要做的檢查。</p><div class="body" id="body">${bodySVG(cl)}${cl.map(c=>`<button type="button" class="call" data-r="${c.r}" style="${pos(c.s==='L'?58:350,c.y)}">${ico(c.i,22)}<span>${c.l}</span></button>`).join('')}</div>
      <div class="logbox" id="pop"></div><div class="logbox" id="elog"></div><div class="endnav"><button type="button" class="cbtn rand" id="n2">完成檢查，進入分析 →</button></div>`;
     const upd=()=>{$('qt').textContent=`還可檢查 ${G.ecap-done.length} 項`;$('elog').innerHTML=done.map(id=>{const it=G.exam.find(e=>e.id===id);return `<div class="logrow pop"><b>${it.label}</b><br>${fnd(it)||it.normal}</div>`}).join('')};
-    document.querySelectorAll('.spot').forEach(b=>b.onclick=()=>{
-      document.querySelectorAll('.spot').forEach(x=>x.classList.toggle('on',x===b));
-      $('pop').innerHTML=G.exam.filter(e=>e.region===b.dataset.r).map(e=>`<button type="button" class="choice" data-e="${e.id}" ${done.includes(e.id)||done.length>=G.ecap?'disabled':''}>🩺 ${e.label}</button>`).join('');
+    document.querySelectorAll('.call').forEach(b=>b.onclick=()=>{
+      document.querySelectorAll('.call').forEach(x=>x.classList.toggle('on',x.dataset.r===b.dataset.r));
+      $('pop').innerHTML=G.exam.filter(e=>e.region===b.dataset.r).map(e=>`<button type="button" class="choice" data-e="${e.id}" ${done.includes(e.id)||done.length>=G.ecap?'disabled':''}>${ico(e.ic||'clipcheck',26)}<span>${e.label}</span></button>`).join('');
       $('pop').querySelectorAll('.choice').forEach(c=>c.onclick=()=>{if(done.length>=G.ecap||done.includes(c.dataset.e))return;done.push(c.dataset.e);$('pop').innerHTML='';upd()})});
     $('n2').onclick=p3;upd();window.scrollTo(0,0);
   }
@@ -70,16 +90,16 @@ function game(T,meta,G){
     const rk=Object.keys(G.routes);
     $('stage').innerHTML=`<details class="fgd" open><summary>📋 目前蒐集到的資訊</summary><div class="logbox">${sum||'<div class="sub">尚未蒐集任何資訊。</div>'}</div></details>
      <p class="sub" style="text-align:center;margin-top:10px">點選身體部位，表示你的思考方向：<b>第一個點選為主要方向 ★</b>，其餘為次要考慮；再點一次取消。</p>
-     <div class="body" id="body">${bodySVG()}${rk.map(k=>`<button type="button" class="anchor" data-k="${k}" style="${pos(G.routes[k].x,G.routes[k].y)}">${G.routes[k].icon}</button>`).join('')}<div id="bubs"></div></div>
+     <div class="body" id="body">${bodySVG()}${rk.map(k=>`<button type="button" class="anchor" data-k="${k}" style="${pos(G.routes[k].x,G.routes[k].y)}">${ico(G.routes[k].ic,18)}<span>${G.routes[k].tag||G.routes[k].short}</span></button>`).join('')}<div id="bubs"></div></div>
      <div class="logbox" id="rp"></div>
-     <div class="step" style="margin-top:12px"><div class="step-head"><div class="step-num">★</div><div class="step-title">下一步計畫（最多 5 項）</div></div><div class="opts" id="plans">${PLAN.map(p=>`<button type="button" class="opt" data-p="${p[0]}">${p[1]}</button>`).join('')}</div></div>
+     <div class="step" style="margin-top:12px"><div class="step-head"><div class="step-num">★</div><div class="step-title">下一步計畫（最多 5 項）</div></div><div class="opts" id="plans">${PLAN.map(p=>`<button type="button" class="opt" data-p="${p[0]}">${ico(PICON[p[0]],20)}${p[1]}</button>`).join('')}</div></div>
      <div class="endnav"><button type="button" class="cbtn rand" id="sub">送出分析</button></div><div class="msg" id="msg"></div>`;
     const active=()=>[...(R.main?[R.main]:[]),...R.more];
     const draw=()=>{
       document.querySelectorAll('.anchor').forEach(a=>{a.classList.toggle('main',a.dataset.k===R.main);a.classList.toggle('on',R.more.has(a.dataset.k))});
       $('bubs').innerHTML=active().map(k=>{const r=G.routes[k],ds=[...R.dx].map(i=>T.dx[i]).filter(d=>d.loc===k);
-        return `<div class="tbub ${r.dir||'r'}${k===R.main?' main':''}" style="${pos(r.x,r.y)}"><b>${k===R.main?'★ ':''}${r.short}</b>${ds.map(d=>`<div>• ${d.name.split('（')[0]}</div>`).join('')}</div>`}).join('');
-      $('rp').innerHTML=active().map(k=>`<div class="gname">${G.routes[k].icon} ${G.routes[k].short}：選擇可能的診斷（共最多 5 項，目前 ${R.dx.size}）</div><div class="opts">${T.dx.map((d,i)=>[d,i]).filter(([d])=>d.loc===k).map(([d,i])=>`<button type="button" class="opt${R.dx.has(i)?' sel':''}" data-i="${i}">${d.name}</button>`).join('')}</div>`).join('')||'<div class="sub" style="text-align:center">尚未選擇思考方向。</div>';
+        return `<div class="tbub ${r.dir||'r'}${k===R.main?' main':''}" style="${pos(r.x,r.y)}"><b>${ico(r.ic,14)} ${k===R.main?'★ ':''}${r.tag||r.short}</b>${ds.map(d=>`<div>• ${d.name.split('（')[0]}</div>`).join('')}</div>`}).join('');
+      $('rp').innerHTML=active().map(k=>`<div class="gname">${ico(G.routes[k].ic,18)} ${G.routes[k].short}：選擇可能的診斷（共最多 5 項，目前 ${R.dx.size}）</div><div class="opts">${T.dx.map((d,i)=>[d,i]).filter(([d])=>d.loc===k).map(([d,i])=>`<button type="button" class="opt${R.dx.has(i)?' sel':''}" data-i="${i}">${d.name}</button>`).join('')}</div>`).join('')||'<div class="sub" style="text-align:center">尚未選擇思考方向。</div>';
       $('rp').querySelectorAll('.opt').forEach(b=>b.onclick=()=>{const i=+b.dataset.i;if(R.dx.has(i))R.dx.delete(i);else if(R.dx.size<5)R.dx.add(i);else return;draw()});
     };
     document.querySelectorAll('.anchor').forEach(a=>a.onclick=()=>{const k=a.dataset.k;

@@ -41,7 +41,7 @@ function home(){
     <div class="tlist">${INDEX.map(t=>{
       const n=store.get('done:'+t.id,0);
       return `<button class="tcard${t.ready?'':' off'}" data-id="${t.id}" ${t.ready?'':'disabled'}>
-        <div class="ts">${t.series?'系列 '+t.series:(t.ready?'':'敬請期待')}</div><div class="tt">${t.title}</div><div class="td">${t.desc}</div>
+        <div class="ts">${t.series?'系列 '+t.series:(t.ready?'':'敬請期待')}</div><div class="tt">${ico(TICON[t.id],28)}${t.title}</div><div class="td">${t.desc}</div>
         ${n?`<div class="tn">已完成 ${n} 次練習</div>`:''}</button>`}).join('')}</div>
     <footer>${FOOT}</footer>`;
   document.getElementById('examBtn').onclick=()=>{location.hash='#/osce'};

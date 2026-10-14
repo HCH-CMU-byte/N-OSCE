@@ -13,7 +13,7 @@ function examMenu(){
    <p class="sub">系統隨機產生病例。請在時限內，從有限的次數中選擇要深入詢問或檢查的項目，最後判斷病灶區域、列出至少 3 項鑑別診斷並擬定下一步計畫，作答後會有評分與講解。</p></header>
    <div class="combo"><div class="combo-title">作答時限</div><div class="combo-row">${[5,8,10].map(m=>`<button type="button" class="cbtn${m===EXAM_MIN?' rand':''}" data-m="${m}">${m} 分鐘</button>`).join('')}</div></div>
    <div class="tlist"><button type="button" class="tcard" data-x="random"><div class="tt">🎲 隨機主題</div><div class="td">從所有主題中隨機抽題</div></button>
-   ${ready.map(t=>{const r=store.get('exam:'+t.id,null);return `<button type="button" class="tcard" data-x="${t.id}"><div class="tt">${t.title}</div>${r?`<div class="tn">已練習 ${r.n} 次・最近 ${r.last} 分・最佳 ${r.best} 分</div>`:''}</button>`}).join('')}</div>`;
+   ${ready.map(t=>{const r=store.get('exam:'+t.id,null);return `<button type="button" class="tcard" data-x="${t.id}"><div class="tt">${ico(TICON[t.id],28)}${t.title}</div>${r?`<div class="tn">已練習 ${r.n} 次・最近 ${r.last} 分・最佳 ${r.best} 分</div>`:''}</button>`}).join('')}</div>`;
   app.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{EXAM_MIN=+b.dataset.m;store.set('examMin',EXAM_MIN);app.querySelectorAll('[data-m]').forEach(x=>x.classList.toggle('rand',x===b))});
   app.querySelectorAll('[data-x]').forEach(b=>b.onclick=()=>{location.hash='#/osce/'+b.dataset.x});
   document.getElementById('back').onclick=()=>{location.hash='#/'};
@@ -57,7 +57,7 @@ function exam(T,meta){
      <div class="step"><div class="step-head"><div class="step-num">2</div><div class="step-title">鑑別診斷（至少 3 項，最多 5 項）</div><div class="step-picked" id="dcount">0/5</div></div>
      <input id="dq" class="search" type="search" placeholder="搜尋診斷名稱…">
      ${T.localize.options.map(o=>{const L=T.dx.map((d,i)=>[d,i]).filter(([d])=>d.loc===o.id);return L.length?`<div class="dgrp"><div class="gname">${o.label}</div><div class="opts">${L.map(([d,i])=>`<button type="button" class="opt dopt" data-i="${i}">${d.name}</button>`).join('')}</div></div>`:''}).join('')}</div><div class="connector"></div>
-     <div class="step"><div class="step-head"><div class="step-num">3</div><div class="step-title">下一步計畫（最多 5 項）</div></div><div class="opts" id="plans">${PLAN.map(p=>`<button type="button" class="opt" data-p="${p[0]}">${p[1]}</button>`).join('')}</div></div>
+     <div class="step"><div class="step-head"><div class="step-num">3</div><div class="step-title">下一步計畫（最多 5 項）</div></div><div class="opts" id="plans">${PLAN.map(p=>`<button type="button" class="opt" data-p="${p[0]}">${ico(PICON[p[0]],20)}${p[1]}</button>`).join('')}</div></div>
      <div class="endnav"><button type="button" class="cbtn rand" id="submit">送出作答</button></div><div class="msg" id="msg"></div>`;
     document.querySelectorAll('#locs .opt').forEach(b=>b.onclick=()=>{loc.v=b.dataset.id;document.querySelectorAll('#locs .opt').forEach(x=>x.classList.toggle('sel',x===b))});
     document.querySelectorAll('.dopt').forEach(b=>b.onclick=()=>{const i=+b.dataset.i;if(dsel.has(i))dsel.delete(i);else if(dsel.size<5)dsel.add(i);else return;b.classList.toggle('sel',dsel.has(i));$('dcount').textContent=dsel.size+'/5'});

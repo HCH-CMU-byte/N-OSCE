@@ -18,5 +18,6 @@ for(const id of ['dizziness','headache']){try{const G=JSON.parse(fs.readFileSync
   G.q.forEach(q=>{const o=T.steps.find(s=>s.dim===q.dim).options;o.forEach(x=>q.lay[x]||err(`game/${id}: 缺少「${x}」的白話回答`))});
   G.exam.forEach(e=>Object.keys(e.over).forEach(k=>T.dx.some(d=>d.name.includes(k))||err(`game/${id}/${e.id}: 診斷關鍵字「${k}」找不到`)));
   Object.keys(G.routes).forEach(k=>T.localize.options.some(o=>o.id===k)||err(`game/${id}: route ${k} 不在 localize 中`));
+  const ic=fs.readFileSync('icons.js','utf8');[...G.q,...G.gen,...G.exam,...Object.values(G.routes)].forEach(x=>x.ic&&!new RegExp('\\n '+x.ic+':').test(ic)&&err(`game/${id}: 圖示「${x.ic}」不存在於 icons.js`));
   console.log(`✓ game/${id}：${G.q.length} 個問診問題、${G.exam.length} 個檢查項目`)}catch(e){err('game/'+id+': '+e.message)}}
 process.exit(bad?1:0);

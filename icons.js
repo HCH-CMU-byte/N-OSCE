@@ -50,6 +50,11 @@ const ICON={
  spiral:'<path d="M16 16a2 2 0 0 1 2 2 4 4 0 0 1-4 4 6 6 0 0 1-6-6 8 8 0 0 1 8-8 10 10 0 0 1 10 10 12 12 0 0 1-12 12"/>',
  armweak:'<path d="M6 4v10l12 9v5" stroke-width="6"/><path d="M27 6v11M23 13l4 4 4-4"/>',
  nerve:'<path d="M16 29V16M16 16L8 8M16 16l8-8M16 23l7-4"/><circle cx="8" cy="8" r="2.5" fill="currentColor"/><circle cx="24" cy="8" r="2.5" fill="currentColor"/><circle cx="23" cy="19" r="2.5" fill="currentColor"/>',
+ pill:'<rect x="4" y="11" width="24" height="10" rx="5" transform="rotate(-35 16 16)"/><path d="M12 8.5l8 11" transform="rotate(0)"/>',
+ thermo:'<path d="M13 5a3 3 0 0 1 6 0v13a6 6 0 1 1-6 0Z"/><circle cx="16" cy="23" r="2.4" fill="currentColor"/><path d="M16 9v12"/>',
+ moon:'<path d="M24 20A11 11 0 1 1 12 6a9 9 0 0 0 12 14Z"/>',
+ spine:'<rect x="11" y="3" width="10" height="5" rx="2"/><rect x="10" y="10" width="12" height="5" rx="2"/><rect x="9" y="17" width="14" height="5" rx="2"/><rect x="10" y="24" width="12" height="5" rx="2"/>',
+ muscle:'<path d="M5 12v8M9 9v14M23 9v14M27 12v8M9 16h14"/>',
  shake:'<path d="M9 17v-4M13 15V6M17 14V4M21 15V6M9 17c0 8 3 12 8 12s8-4 8-12"/><path d="M3 9q-2 5 0 10M30 9q2 5 0 10"/>'
 };
 const ico=(n,s=22)=>`<svg class="ico" viewBox="0 0 32 32" width="${s}" height="${s}" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[n]||''}</svg>`;

@@ -156,3 +156,4 @@ footer{text-align:center;margin-top:28px;color:var(--muted);font-size:12px}
 .tt .ico{vertical-align:-6px;margin-right:8px}
 .call{width:max-content;max-width:none;box-sizing:border-box}
 .body .anchor{width:max-content;max-width:none;box-sizing:border-box;white-space:nowrap}
+.tbub.tt{transform:translateY(-12%)}.tbub.l.tt{transform:translate(-100%,-12%)}

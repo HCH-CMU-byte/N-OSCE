@@ -1,5 +1,5 @@
 /* 互動情境（試行版）：對話問診 → 碰觸身體檢查 → 腦中分析泡泡 → 評分講解 */
-const GAMES=['dizziness','headache'];
+const GAMES=['dizziness','headache','weakness'];
 const shuf=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
 function say(el,text){clearInterval(say.t);el.textContent='';let i=0;say.t=setInterval(()=>{el.textContent=text.slice(0,++i);if(i>=text.length)clearInterval(say.t)},22)}
 /* 身體檢查圖（黑白圖示風格，viewBox 420×520）：r=檢查區域、l=按鈕文字、side=按鈕在身體左/右、y=按鈕高度、t=身體上的目標點 */
@@ -19,11 +19,15 @@ function bodySVG(cl=[]){return `<svg viewBox="0 0 420 520" xmlns="http://www.w3.
  <path d="M210,80 l-7,18 h14" fill="none" stroke="#111" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M191,114 q19,15 38,0" fill="none" stroke="#111" stroke-width="5" stroke-linecap="round"/>
  ${cl.map(c=>`<line x1="${cx(c.t[0]<210&&c.s==='L'?0:420)}" y1="${c.y}" x2="${c.t[0]}" y2="${c.t[1]}" stroke="#fff" stroke-width="7" stroke-linecap="round"/><line x1="${c.s==='L'?106:302}" y1="${c.y}" x2="${c.t[0]}" y2="${c.t[1]}" stroke="#111" stroke-width="2.5"/>`).join('')}
  ${cl.map(c=>`<circle class="tdot" cx="${c.t[0]}" cy="${c.t[1]}" r="12" fill="none" stroke="#fff" stroke-width="8"/><circle class="tdot" cx="${c.t[0]}" cy="${c.t[1]}" r="12" fill="none" stroke="#d9534f" stroke-width="4.5"/>`).join('')}</svg>`}
-function docSVG(){return `<svg viewBox="0 0 120 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><g stroke="#111" stroke-linecap="round"><line x1="30" y1="76" x2="14" y2="132" stroke-width="13"/><line x1="90" y1="76" x2="106" y2="132" stroke-width="13"/></g>
- <rect x="36" y="150" width="18" height="44" rx="7" fill="#111"/><rect x="66" y="150" width="18" height="44" rx="7" fill="#111"/>
- <path d="M30,68 Q60,58 90,68 L98,156 L22,156 Z" fill="#fff" stroke="#111" stroke-width="5" stroke-linejoin="round"/><path d="M48,64 L60,92 L72,64" fill="none" stroke="#111" stroke-width="4"/>
- <path d="M52,72 Q44,104 60,108 Q76,104 68,72" fill="none" stroke="#111" stroke-width="3"/><circle cx="60" cy="110" r="4" fill="#111"/><circle cx="60" cy="36" r="24" fill="#111"/>
- <rect x="92" y="112" width="22" height="30" rx="3" fill="#fff" stroke="#111" stroke-width="3"/><path d="M97,122 h12 M97,129 h12 M97,136 h8" stroke="#111" stroke-width="2"/></svg>`}
+function docSVG(){return `<svg viewBox="0 0 120 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+ <rect x="35" y="148" width="19" height="46" rx="7" fill="#111"/><rect x="66" y="148" width="19" height="46" rx="7" fill="#111"/><rect x="31" y="188" width="26" height="9" rx="4" fill="#111"/><rect x="63" y="188" width="26" height="9" rx="4" fill="#111"/>
+ <rect x="12" y="66" width="18" height="74" rx="9" fill="#fff" stroke="#111" stroke-width="5"/><rect x="90" y="66" width="18" height="74" rx="9" fill="#fff" stroke="#111" stroke-width="5"/>
+ <path d="M30,62 L48,56 H72 L90,62 V152 H30 Z" fill="#fff" stroke="#111" stroke-width="5" stroke-linejoin="round"/>
+ <path d="M50,57 L60,98 L70,57 Z" fill="#111"/><path d="M49,57 L58,106 M71,57 L62,106" stroke="#111" stroke-width="4" fill="none"/>
+ <circle cx="60" cy="120" r="2.6" fill="#111"/><circle cx="60" cy="136" r="2.6" fill="#111"/><rect x="34" y="112" width="15" height="16" rx="2" fill="none" stroke="#111" stroke-width="3"/>
+ <path d="M44,58 Q38,94 60,98 Q82,94 76,58" fill="none" stroke="#111" stroke-width="3.5"/><circle cx="60" cy="102" r="4.5" fill="#111"/>
+ <rect x="26" y="9" width="68" height="18" rx="9" fill="#111" opacity="0"/><circle cx="60" cy="32" r="23" fill="#111"/><rect x="52" y="52" width="16" height="9" fill="#111"/>
+ <rect x="86" y="112" width="26" height="34" rx="3" fill="#fff" stroke="#111" stroke-width="3.5"/><path d="M91,122 h16 M91,129 h16 M91,136 h10" stroke="#111" stroke-width="2.4"/></svg>`}
 function patSVG(f){return `<svg viewBox="0 0 220 170" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect x="196" y="36" width="12" height="100" rx="4" fill="#111"/><rect x="16" y="104" width="190" height="22" rx="7" fill="#111"/>
  <rect x="30" y="126" width="160" height="7" fill="#111"/><g fill="#111"><circle cx="46" cy="150" r="12"/><circle cx="176" cy="150" r="12"/></g><g fill="#fff"><circle cx="46" cy="150" r="5"/><circle cx="176" cy="150" r="5"/></g>
  <rect x="66" y="86" width="108" height="20" rx="10" fill="#111"/><rect x="150" y="50" width="36" height="58" rx="14" fill="#111"/><line x1="160" y1="74" x2="124" y2="92" stroke="#111" stroke-width="12" stroke-linecap="round"/>
@@ -48,6 +52,7 @@ function game(T,meta,G){
   const auto=['age','sex'].filter(d=>S.some(s=>s.dim===d)),askDims=G.q.map(q=>q.dim);
   const spec=Object.fromEntries(askDims.map(d=>[d,1-T.dx.filter(x=>(x.match[d]||[]).includes(val[d])).length/N]));
   const fnd=it=>{const k=Object.keys(it.over).find(k=>truth.name.includes(k));return k?it.over[k]:null};
+  const gfnd=q=>{if(!q.over)return null;const k=Object.keys(q.over).find(k=>truth.name.includes(k));return k?q.over[k]:null};
   const pool=shuf([...G.q.map(q=>({k:'q',dim:q.dim,ask:q.ask,ic:q.ic})),...G.gen.map((g,i)=>({k:'g',i,ask:g.ask,ic:g.ic}))]);
   const hist=[],done=[],R={main:null,more:new Set(),dx:new Set(),plan:new Set()};
   const old=/>65|>50/.test(val.age||''),fem=val.sex==='女',av=old?(fem?'👵':'👴'):(fem?'👩':'👨');
@@ -68,7 +73,7 @@ function game(T,meta,G){
     $('ch').innerHTML=pool.map((c,i)=>`<button type="button" class="choice" data-i="${i}" ${hist.includes(c)||left<=0?'disabled':''}>${ico(c.ic||'list',26)}<span>${c.ask}</span></button>`).join('');
     $('ch').querySelectorAll('.choice').forEach(b=>b.onclick=()=>{
       const c=pool[+b.dataset.i];if(hist.length>=G.qcap||hist.includes(c))return;hist.push(c);
-      const rep=c.k==='q'?(G.q.find(q=>q.dim===c.dim).lay[val[c.dim]]||val[c.dim]):G.gen[c.i].reply;
+      const rep=c.k==='q'?(G.q.find(q=>q.dim===c.dim).lay[val[c.dim]]||val[c.dim]):(gfnd(G.gen[c.i])||G.gen[c.i].reply);
       $('dbub').textContent=c.ask;say($('pbub'),rep);c.rep=rep;
       $('hlog').innerHTML=hist.map(h=>`<div class="logrow"><b>你：</b>${h.ask}<br><b>病人：</b>${h.rep}</div>`).join('');choices()});
   }
@@ -98,7 +103,7 @@ function game(T,meta,G){
     const draw=()=>{
       document.querySelectorAll('.anchor').forEach(a=>{a.classList.toggle('main',a.dataset.k===R.main);a.classList.toggle('on',R.more.has(a.dataset.k))});
       $('bubs').innerHTML=active().map(k=>{const r=G.routes[k],ds=[...R.dx].map(i=>T.dx[i]).filter(d=>d.loc===k);
-        return `<div class="tbub ${r.dir||'r'}${k===R.main?' main':''}" style="${pos(r.x,r.y)}"><b>${ico(r.ic,14)} ${k===R.main?'★ ':''}${r.tag||r.short}</b>${ds.map(d=>`<div>• ${d.name.split('（')[0]}</div>`).join('')}</div>`}).join('');
+        return `<div class="tbub ${r.dir||'r'}${r.y<90?' tt':''}${k===R.main?' main':''}" style="${pos(r.x,r.y)}"><b>${ico(r.ic,14)} ${k===R.main?'★ ':''}${r.tag||r.short}</b>${ds.map(d=>`<div>• ${d.name.split('（')[0]}</div>`).join('')}</div>`}).join('');
       $('rp').innerHTML=active().map(k=>`<div class="gname">${ico(G.routes[k].ic,18)} ${G.routes[k].short}：選擇可能的診斷（共最多 5 項，目前 ${R.dx.size}）</div><div class="opts">${T.dx.map((d,i)=>[d,i]).filter(([d])=>d.loc===k).map(([d,i])=>`<button type="button" class="opt${R.dx.has(i)?' sel':''}" data-i="${i}">${d.name}</button>`).join('')}</div>`).join('')||'<div class="sub" style="text-align:center">尚未選擇思考方向。</div>';
       $('rp').querySelectorAll('.opt').forEach(b=>b.onclick=()=>{const i=+b.dataset.i;if(R.dx.has(i))R.dx.delete(i);else if(R.dx.size<5)R.dx.add(i);else return;draw()});
     };
@@ -114,8 +119,8 @@ function game(T,meta,G){
     const w=x=>S.find(s=>s.dim===x).w||1,rev=[...auto,...hist.filter(h=>h.k==='q').map(h=>h.dim)];
     const sc=d=>rev.reduce((a,x)=>a+((d.match[x]||[]).includes(val[x])?w(x):0),0);
     const rs=T.dx.map(d=>({d,s:sc(d)})).sort((a,b)=>b.s-a.s),thr=rs[Math.min(5,rs.length-1)].s,plaus=new Set(rs.filter(x=>x.s>=thr&&x.s>0).map(x=>x.d));
-    const keyH=[...askDims].sort((a,b)=>spec[b]-spec[a]).slice(0,G.qcap),askedQ=hist.filter(h=>h.k==='q').map(h=>h.dim);
-    const pH=Math.round(20*Math.min(1,askedQ.reduce((a,d)=>a+spec[d],0)/(keyH.reduce((a,d)=>a+spec[d],0)||1)));
+    const iv=c=>c.k==='q'?spec[c.dim]:(gfnd(G.gen[c.i])?0.5:0),qt=c=>c.ask.replace(/？.*/,'？'),keyH=pool.filter(c=>iv(c)>0).sort((a,b)=>iv(b)-iv(a)).slice(0,G.qcap),askedQ=hist.filter(h=>h.k==='q').map(h=>h.dim);
+    const pH=Math.round(20*Math.min(1,hist.reduce((a,c)=>a+iv(c),0)/(keyH.reduce((a,c)=>a+iv(c),0)||1)));
     const keyE=G.exam.filter(e=>fnd(e)),hitE=keyE.filter(e=>done.includes(e.id));
     const pE=keyE.length?Math.round(20*Math.min(1,hitE.length/Math.min(keyE.length,G.ecap))):(done.length>=2?20:10);
     const pR=R.main===truth.loc?15:(R.more.has(truth.loc)?7:0);
@@ -127,12 +132,13 @@ function game(T,meta,G){
     const pP=R.plan.size?Math.round(Math.min(20,pp)*0.75):0,total=pH+pE+pR+pD+pP;
     const r=store.get('game:'+T.id,{n:0,best:0,last:0});store.set('game:'+T.id,{n:r.n+1,last:total,best:Math.max(r.best,total)});
     const li=a=>a.length?'<ul>'+a.map(x=>`<li>${x}</li>`).join('')+'</ul>':'',row=(t,s,m,b)=>`<div class="dxcard"><div class="dxname rs"><span>${t}</span><span>${s}／${m}</span></div>${b}</div>`;
-    const missH=keyH.filter(d=>!askedQ.includes(d)).map(d=>`<span class="bad">漏問</span>「${S.find(s=>s.dim===d).title}」：本案答案是「${val[d]}」，只符合 ${T.dx.filter(x=>(x.match[d]||[]).includes(val[d])).length}／${N} 個診斷，是縮小範圍的關鍵。`);
-    const hL=[`你問了：${hist.map(h=>h.ask.replace(/？.*/,'？')).join('、')||'（無）'}`,...missH,...(hist.some(h=>h.k==='g')?['一般性問題（家族史、旅遊、生活習慣）在次數有限時，優先順序應排在區辨力高的問題之後。']:[])];
+    const missH=keyH.filter(c=>!hist.includes(c)).map(c=>c.k==='q'?`<span class="bad">漏問</span>「${S.find(s=>s.dim===c.dim).title}」：本案答案是「${val[c.dim]}」，只符合 ${T.dx.filter(x=>(x.match[c.dim]||[]).includes(val[c.dim])).length}／${N} 個診斷，是縮小範圍的關鍵。`:`<span class="bad">漏問</span>「${qt(c)}」：本案的回答是「${gfnd(G.gen[c.i])}」，提供了重要線索。`);
+    const wasteH=hist.filter(c=>iv(c)===0);
+    const hL=[`你問了：${hist.map(qt).join('、')||'（無）'}`,...missH,...(wasteH.length?[`對本案幫助不大的提問：${wasteH.map(qt).join('、')}。次數有限時，應優先問區辨力高、能改變判斷的問題。`]:[])];
     const eL=[keyE.length?`本案的關鍵檢查發現共 ${keyE.length} 項，你完成 ${hitE.length} 項。`:'本案的檢查多為正常，此時「排除危險診斷」本身就是重要的檢查目的。',...keyE.filter(e=>!done.includes(e.id)).map(e=>`<span class="bad">漏做</span>「${e.label}」：本案發現為「${fnd(e)}」`)];
     const rL=[`你的主要方向：${R.main?G.routes[R.main].short:'未選擇'}；正確方向：<b>${locLabel(truth.loc)}</b>。`];
     const dL=ch.map(d=>`${cat(d)} ${d.name}${d.red?'（紅旗）':''}`),dN=['✓ 正確診斷　○ 合理候選（依線索或同一方向）　✗ 與線索不符',`正確診斷：<b>${truth.name}</b>。確診尚需補足：${truth.missing}`];
-    const sg=[];if(pH<14)sg.push(`問診效率：次數有限時，先問區辨力高的問題（本案依序為：${keyH.map(d=>S.find(s=>s.dim===d).title).join('、')}）。`);
+    const sg=[];if(pH<14)sg.push(`問診效率：次數有限時，先問區辨力高的問題（本案依序為：${keyH.map(c=>c.k==='q'?S.find(s=>s.dim===c.dim).title:qt(c)).join('、')}）。`);
     if(keyE.length&&hitE.length<Math.min(keyE.length,G.ecap))sg.push('身體檢查：先針對高風險或能區分中樞與周邊的檢查（例如眼震、甩頭試驗、頸部與神經學檢查），再做例行檢查。');
     if(pR===0)sg.push('思考方向：先判斷最可能的方向，再展開鑑別診斷，避免一開始就把範圍拉太寬。');if(!ch.includes(truth))sg.push('鑑別診斷要同時涵蓋「最可能」與「不能漏掉」（紅旗）兩類。');
     $('qt').textContent='';$('ph').textContent='結果';
